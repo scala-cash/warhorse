@@ -1,5 +1,6 @@
 package scash.warhorse.core
 
+import scash.warhorse.Result
 import scodec.bits.ByteVector
 import scash.warhorse.core.crypto.Secp256k1._
 
@@ -12,7 +13,7 @@ package object crypto {
 
   def isValid(privkey: PrivateKey): Boolean = secp256k1KeyGen.isValidPrivatekey(privkey)
 
-  def sign[A: Signer](msg: ByteVector, priv: PrivateKey): Signature[A] =
+  def sign[A: Signer](msg: ByteVector, priv: PrivateKey): Result[Signature[A]] =
     Signer[A].sign(msg, priv)
 
   def verify[A: Signer](msg: ByteVector, signature: Signature[A], pubKey: PublicKey): Boolean =
