@@ -1,6 +1,8 @@
 package scash.warhorse.core.number
 
+import scash.warhorse.Result
 import scash.warhorse.core.typeclass.{ CNumeric, Serde }
+import scodec.bits.ByteVector
 import scodec.codecs.uint32L
 
 import scala.util.Try
@@ -15,6 +17,10 @@ object Uint32 {
   def apply(n: BigInt): Uint32 = new Uint32(verify(n)(min, max).toLong)
 
   def safe(n: Long): Option[Uint32] = Try(apply(n)).toOption
+
+  def safe(n: BigInt): Result[Uint32] = Result.fromTry(Try(apply(n)))
+
+  def apply(bytes: ByteVector) = uint32Serde.decodeValue(bytes)
 
   val min  = new Uint32(0)
   val zero = min

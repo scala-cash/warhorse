@@ -1,11 +1,9 @@
 package scash.warhorse.core.crypto
 
+import scash.warhorse.Result
+
 trait KeyGen[A] {
-  def genPrivkey: PrivateKey
+  def genPrivkey: Result[PrivateKey]
 
-  def genPubkey(publicKey: PrivateKey): PublicKey
-
-  def isValidPubkey(pubkey: PublicKey): Boolean
-
-  def isValidPrivatekey(pubkey: PrivateKey): Boolean
+  def genPubkey(publicKey: PrivateKey): Result[PublicKey]
 }

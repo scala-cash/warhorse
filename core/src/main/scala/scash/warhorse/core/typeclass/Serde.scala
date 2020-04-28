@@ -10,6 +10,9 @@ trait Serde[A] {
 
   def xmap[B](fa: A => B, fb: B => A): Serde[B] = Serde(codec.xmap(fa, fb))
 
+  def narrow[B](fa: A => Result[B], fb: B => A): Serde[B] =
+    Serde(codec.narrow(a => Result.toAttempt(fa(a)), fb))
+
   def decodeValue(byteVector: ByteVector): Result[A] =
     Result.fromAttempt(codec.decodeValue(byteVector.bits))
 
@@ -45,6 +48,10 @@ trait SerdeSyntax {
   implicit class SerdeSyntaxOps[A: Serde](a: A) {
     def bytes: ByteVector = Serde[A].encode(a).require
     def hex: String       = bytes.toHex
+  }
+
+  implicit class ArrayByteOps(array: Array[Byte]) {
+    def toByteVector = ByteVector(array)
   }
 
   implicit class ByteVectorOps(byteVector: ByteVector) {

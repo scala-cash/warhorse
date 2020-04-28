@@ -1,8 +1,8 @@
 package scash.warhorse
 
 import scash.warhorse.core.typeclass.{ CNumeric, CNumericSyntax, SerdeSyntax }
-
-package object core extends SerdeSyntax with CNumericSyntax {
+import scash.warhorse.core.crypto.SignatureSyntax
+package object core extends SerdeSyntax with CNumericSyntax with SignatureSyntax {
   import scala.{ Predef => P }
 
   implicit val bigIntNumeric: CNumeric[BigInt] =
