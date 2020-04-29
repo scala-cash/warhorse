@@ -50,6 +50,12 @@ trait SerdeSyntax {
     def hex: String       = bytes.toHex
   }
 
+  implicit class BigIntOps(bigInt: BigInt) {
+    def toByteVector = bigInt.toByteArray.toByteVector
+
+    def toHex: String = toByteVector.toHex
+  }
+
   implicit class ArrayByteOps(array: Array[Byte]) {
     def toByteVector = ByteVector(array)
   }
@@ -70,5 +76,7 @@ trait SerdeSyntax {
 
     /** Returns the successful value if present; otherwise throws an `IllegalArgumentException` if decodeExact fails. */
     def decodeExact_[A: Serde]: A = decodeExact.require
+
+    def toBigInt: BigInt = BigInt(byteVector.toHex, 16)
   }
 }

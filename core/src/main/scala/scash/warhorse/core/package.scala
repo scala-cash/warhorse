@@ -5,7 +5,7 @@ import scash.warhorse.core.crypto.SignatureSyntax
 package object core extends SerdeSyntax with CNumericSyntax with SignatureSyntax {
   import scala.{ Predef => P }
 
-  implicit val bigIntNumeric: CNumeric[BigInt] =
+  implicit val bigInt64Numeric: CNumeric[BigInt] =
     CNumeric[BigInt](
       0xFFFFFFFFFFFFFFFFL,
       BigInt(Long.MinValue),

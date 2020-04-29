@@ -2,26 +2,30 @@ package scash.warhorse.core.crypto
 
 import scash.warhorse.{ Err, Result }
 import scash.warhorse.Result.{ Failure, Successful }
-import scash.warhorse.core.number.Uint32
 import scash.warhorse.core.typeclass.Serde
 import scash.warhorse.core._
+import scodec.DecodeResult
+import scodec.bits.ByteVector
 
-case class PrivateKey(u: Uint32)
+protected[crypto] case class PrivateKey(b: BigInt)
 
 object PrivateKey {
+
+  def apply(b: ByteVector): Result[PrivateKey] = apply(b.toBigInt)
+
   def apply(bigInt: BigInt): Result[PrivateKey] =
-    for {
-      num  <- Uint32.safe(bigInt)
-      priv <- apply(num)
-    } yield priv
+    if (bigInt > zero && bigInt < max) Successful(new PrivateKey(bigInt))
+    else Failure(Err.BoundsError("Privatekey", s"needs > $zero && < $max", bigInt.toHex))
 
-  def apply(n: Uint32): Result[PrivateKey] =
-    if (n != Uint32.zero) Successful(new PrivateKey(n))
-    else Failure(Err.BoundsError("private key", "it must be less than 32 bytes and not zero", n.toString))
+  implicit val sha256Serde: Serde[PrivateKey] = Serde[PrivateKey](
+    (a: PrivateKey) => Successful(a.b.toByteVector),
+    (b: ByteVector) => apply(b.take(32).toBigInt).map(DecodeResult(_, b.drop(32).bits))
+  )
 
-  def apply(bytes: Array[Byte]): Result[PrivateKey] =
-    Uint32(bytes.toByteVector).flatMap(apply(_))
+  val max  = BigInt("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", 16)
+  val zero = BigInt(0)
 
-  implicit val privateKeySerde: Serde[PrivateKey] =
-    Uint32.uint32Serde.narrow(apply(_), _.u)
+  implicit class PrivateKeyOps(p: PrivateKey) {
+    def genPublicKey: Result[PublicKey] = crypto.genPubkey(p)
+  }
 }

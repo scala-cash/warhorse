@@ -23,7 +23,7 @@ object Secp256k1 {
 
   implicit val secp256k1KeyGen: KeyGen[Secp256k1] = new KeyGen[Secp256k1] {
     def genPrivkey: Result[PrivateKey] =
-      PrivateKey(BigInt(256, new SecureRandom()))
+      PrivateKey.apply(BigInt(256, new SecureRandom()))
 
     def genPubkey(privateKey: PrivateKey): Result[PublicKey] = {
       val pointQ = secp256K1Curve.domain.getG.multiply(new BigInteger(1, privateKey.bytes.toArray))

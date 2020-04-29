@@ -16,7 +16,7 @@ object util {
 
   def failure = isSubtype[Failure](Assertion.anything)
 
-  def successful[A] = isSubtype[Successful[A]](Assertion.anything)
+  def success[A]() = isSubtype[Successful[A]](Assertion.anything)
 
   def openFile(fileName: String): Managed[Throwable, BufferedSource] =
     Managed.makeEffect(Source.fromResource(fileName))(_.close())

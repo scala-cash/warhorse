@@ -7,7 +7,7 @@ import scash.warhorse.core.crypto.Secp256k1._
 package object crypto {
   def genPrivkey: Result[PrivateKey] = secp256k1KeyGen.genPrivkey
 
-  def genPubkey(publicKey: PrivateKey): Result[PublicKey] = secp256k1KeyGen.genPubkey(publicKey)
+  def genPubkey(privateKey: PrivateKey): Result[PublicKey] = secp256k1KeyGen.genPubkey(privateKey)
 
   def sign[A: Signer](msg: ByteVector, privkey: PrivateKey): Result[Signature[A]] =
     Signer[A].sign(msg, privkey)
