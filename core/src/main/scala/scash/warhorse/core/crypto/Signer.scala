@@ -4,9 +4,9 @@ import scash.warhorse.Result
 import scodec.bits.ByteVector
 
 trait Signer[A] {
-  def sign(msg: ByteVector, privkey: PrivateKey): Result[Signature[A]]
+  def sign(msg: ByteVector, privkey: PrivateKey): Result[Signature]
 
-  def verify(msg: ByteVector, sig: Signature[A], pubkey: PublicKey): Boolean
+  def verify(msg: ByteVector, sig: ByteVector, pubkey: PublicKey): Boolean
 }
 
 object Signer {

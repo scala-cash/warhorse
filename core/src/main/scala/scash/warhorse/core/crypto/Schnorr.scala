@@ -4,7 +4,7 @@ import scash.warhorse.Result
 import scodec.bits.ByteVector
 
 class Schnorr extends Signer[Schnorr] {
-  def sign(msg: ByteVector, privkey: PrivateKey): Result[Signature[Schnorr]] = Predef.???
+  def sign(msg: ByteVector, privkey: PrivateKey): Result[Signature] = Predef.???
 
-  def verify(msg: ByteVector, sig: Signature[Schnorr], pubkey: PublicKey): Boolean = Predef.???
+  def verify(msg: ByteVector, sig: ByteVector, pubkey: PublicKey): Boolean = Predef.???
 }

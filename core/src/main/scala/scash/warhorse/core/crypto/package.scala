@@ -9,9 +9,9 @@ package object crypto {
 
   def genPubkey(privateKey: PrivateKey): Result[PublicKey] = secp256k1KeyGen.genPubkey(privateKey)
 
-  def sign[A: Signer](msg: ByteVector, privkey: PrivateKey): Result[Signature[A]] =
+  def sign[A: Signer](msg: ByteVector, privkey: PrivateKey): Result[Signature] =
     Signer[A].sign(msg, privkey)
 
-  def verify[A: Signer](msg: ByteVector, signature: Signature[A], pubKey: PublicKey): Boolean =
+  def verify[A: Signer](msg: ByteVector, signature: ByteVector, pubKey: PublicKey): Boolean =
     Signer[A].verify(msg, signature, pubKey)
 }
