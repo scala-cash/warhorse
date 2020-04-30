@@ -8,6 +8,7 @@ object Deps {
     val scodecbits   = "1.1.14"
     val sttp         = "2.0.9"
     val zio          = "1.0.0-RC18-2+147-6dcf6568-SNAPSHOT"
+    val ziosecp256k1 = "0.1.4"
   }
 
   object Libs {
@@ -22,6 +23,7 @@ object Deps {
     val zio          = "dev.zio"                      %% "zio"                           % V.zio withSources () withJavadoc ()
     val zioTest      = "dev.zio"                      %% "zio-test"                      % V.zio withSources () withJavadoc ()
     val zioTestsbt   = "dev.zio"                      %% "zio-test-sbt"                  % V.zio
+    val ziosecp256k1 = "org.scash"                    %% "zio-secp256k1"                 % V.ziosecp256k1
   }
 
   val core = List(
@@ -34,8 +36,9 @@ object Deps {
   val testkit = List(
     Libs.scodec,
     Libs.scodecbits,
-    Libs.zioTest    % "compile,test,it",
-    Libs.zioTestsbt % "test,it"
+    Libs.zioTest      % "compile,test,it",
+    Libs.zioTestsbt   % "test,it",
+    Libs.ziosecp256k1 % "test"
   )
 
   val rpc = List(
