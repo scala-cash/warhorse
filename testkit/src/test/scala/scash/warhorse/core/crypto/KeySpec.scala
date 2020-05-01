@@ -6,8 +6,8 @@ import zio.test._
 import scash.warhorse.util._
 import scash.warhorse.core._
 
-object CryptoSpec extends DefaultRunnableSpec {
-  val spec = suite("CryptoSpec")(
+object KeySpec extends DefaultRunnableSpec {
+  val spec = suite("KeySpec")(
     suite("PrivateKeySpec")(
       testM("priv -> bytes -> priv")(check(gen.privKey)(priv => assert(PrivateKey(priv.bytes))(success(priv)))),
       testM("bytes -> priv -> bytes")(

@@ -1,82 +1,69 @@
 package scash.warhorse.core.crypto
 
+import io.circe.Decoder
+
 import org.scash.secp256k1
+
 import scash.warhorse.core.crypto
 import scash.warhorse.gen
-import scash.warhorse.util.success
+import scash.warhorse.util._
+
 import scodec.bits.ByteVector
-import scodec.bits._
-import zio.test.Assertion.isTrue
+
+import zio.ZIO
+import zio.test.Assertion._
 import zio.test._
 
 object ECDSASpec extends DefaultRunnableSpec {
   val spec = suite("ECDSASpec")(
-    test("testVerifyPos") {
-      val data = ByteVector.fromValidHex("CF80CD8AED482D5D1527D7DC72FCEFF84E6326592848447D2DC0B0E87DFC9A90") //sha256hash of "testing"
-      val sig = ByteVector.fromValidHex(
-        "3044022079BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F817980220294F14E883B3F525B5367756C2A11EF6CF84B730B36C17CB0C56F0AAB2C98589"
-      )
-      val pubHex = ByteVector.fromValidHex(
-        "040A629506E1B65CD9D2E0BA9C75DF9C4FED0DB16DC9625ED14397F0AFC836FAE595DC53F8B0EFE61E703075BD9B143BAC75EC0E19F82A2208CAEB32BE53414C40"
-      )
-      val pub = PublicKey(pubHex).flatMap(crypto.verify[ECDSA](data, sig, _))
-      assert(pub)(success(true))
-    },
-    test("testVerifyNeg") {
-      val data = ByteVector.fromValidHex("CF80CD8AED482D5D1527D7DC72FCEFF84E6326592848447D2DC0B0E87DFC9A91")
-      val sig = ByteVector.fromValidHex(
-        "3044022079BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F817980220294F14E883B3F525B5367756C2A11EF6CF84B730B36C17CB0C56F0AAB2C98589"
-      )
-      val pubHex = ByteVector.fromValidHex(
-        "040A629506E1B65CD9D2E0BA9C75DF9C4FED0DB16DC9625ED14397F0AFC836FAE595DC53F8B0EFE61E703075BD9B143BAC75EC0E19F82A2208CAEB32BE53414C40"
-      )
-      val pub = PublicKey(pubHex).flatMap(crypto.verify[ECDSA](data, sig, _))
-      assert(pub)(success(false))
-    } /*,
-    testM("testSignPos") {
-      val data   = ByteVector.fromValidHex("CF80CD8AED482D5D1527D7DC72FCEFF84E6326592848447D2DC0B0E87DFC9A90")
-      val secHex = ByteVector.fromValidHex("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530")
-      val expected =
-        "3045022100F51D069AA46EDB4E2E77773FE364AA2AF6818AF733EA542CFC4D546640A58D8802204F1C442AC9F26F232451A0C3EE99F6875353FC73902C68055C19E31624F687CC"
-
-      val sec  = PrivateKey(secHex)
-      val pub  = sec.flatMap(_.genPublicKey).require
-      val sign = sec.flatMap(crypto.sign[ECDSA](data, _))
-
-      Predef.println(expected)
-      Predef.println(sign.require.b)
-      val nsign = secp256k1
-        .signECDSA(data.toArray, sec.require.b.toArray)
-        .map(b => crypto.verify[ECDSA](data, ByteVector(b), pub).require)
-
-      val nver =
-        secp256k1.verifyECDSA(secHex.toArray, sign.require.b.toArray, pub.bytes.toArray)
-
-      assertM(nsign.flatMap(b => nver.map(nb => b && nb)))(isTrue)
-    },
-    testM("signECDSA") {
+    testM("sign") {
       checkM(gen.keyPair, gen.sha256) {
         case ((priv, pub), msg) =>
-          val sig   = crypto.sign[ECDSA](msg, priv).require
-          val verif = crypto.verify[ECDSA](msg, sig.b, pub)
-          Predef.println(s"verif $verif priv ${priv.bytes} sig ${sig.b}, pub ${pub.bytes} msg $msg")
-          assertM(secp256k1.verifyECDSA(priv.bytes.tail.toArray, sig.b.toArray, pub.bytes.toArray))(isTrue)
+          val sig = crypto.sign[ECDSA](msg, priv).require
+          assertM(secp256k1.verifyECDSA(msg.toArray, sig.b.toArray, pub.bytes.toArray))(isTrue)
       }
-    }*/,
-    testM("Deterministic") {
-      val msg = "Satoshi Nakamoto"
-      checkM(gen.sha256(msg)) {
-        data =>
-          val priv = hex"0000000000000000000000000000000000000000000000000000000000000001"
-          val sig =
-            hex"3045022100934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d802202442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5"
-          val sec  = PrivateKey(priv)
-          val pub  = sec.flatMap(_.genPublicKey).require
-          val sign = sec.flatMap(crypto.sign[ECDSA](data, _))
-          val nver = secp256k1.verifyECDSA(data.toArray, sig.toArray, pub.bytes.toArray)
-          assertM(nver.map(b => sign.require.b == sig && b))(isTrue)
+    },
+    testM("verify") {
+      checkM(gen.keyPair, gen.sha256) {
+        case ((priv, pub), msg) =>
+          val ver =
+            secp256k1
+              .signECDSA(msg.toArray, priv.bytes.toArray)
+              .map(s => crypto.verify[ECDSA](msg, ByteVector(s), pub))
+          assertM(ver)(success(true))
       }
-    }
+    },
+    testM("deterministic")(
+      // dataset from https://bitcointalk.org/index.php?topic=285142.msg3299061#msg3299061
+      parseJsonfromFile[List[TestVectorECDSA]]("ecdsa.json")
+        .flatMap(r =>
+          ZIO.foreach(r.require)(data =>
+            check(gen.sha256(data.msgStr)) { msg =>
+              val ans = for {
+                sec <- PrivateKey(data.privHex)
+                pub <- sec.genPublicKey
+                sig <- crypto.sign[ECDSA](msg, sec)
+                ver <- crypto.verify[ECDSA](msg, sig.b, pub)
+              } yield (sig, ver)
+              assert(ans)(success((Signature(data.exp), true)))
+            }
+          )
+        )
+        .map(BoolAlgebra.collectAll(_).get)
+    )
   )
 
+  case class TestVectorECDSA(privHex: ByteVector, msgStr: String, exp: ByteVector)
+
+  implicit val ecdsaDecoder: Decoder[List[TestVectorECDSA]] = csvDecoder.map(dataset =>
+    dataset.map { data =>
+      TestVectorECDSA(
+        ByteVector.fromValidHex(data(0)).padLeft(32),
+        data(1),
+        ECDSA
+          .compact2Der(ByteVector.fromValidHex(data(2)))
+          .getOrElse(ByteVector.fromValidHex(data(2)))
+      )
+    }
+  )
 }

@@ -10,17 +10,17 @@ import zio.test.Assertion._
 
 object KeyGenSpec extends DefaultRunnableSpec {
   val spec = suite("KeyGenSpec")(
-    test("testSecKeyVerifyPos") {
+    test("PrivateKey success") {
       val sec  = ByteVector.fromValidHex("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530")
       val psec = PrivateKey(sec)
       assert(psec)(successResult(psec))
     },
-    test("testSecKeyVerifyNeg") {
+    test("PrivateKey fail") {
       val sec  = ByteVector.fromValidHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
       val psec = PrivateKey(sec)
       assert(psec)(failure)
     },
-    test("testPubKeyCreatePos") {
+    test("PublicKey success") {
       val sec       = ByteVector.fromValidHex("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530")
       val resultArr = PrivateKey(sec).flatMap(_.genPublicKey)
       val expected =
@@ -28,7 +28,7 @@ object KeyGenSpec extends DefaultRunnableSpec {
       val ans = PublicKey(ByteVector.fromValidHex(expected))
       assert(resultArr)(equalTo(ans))
     },
-    test("testPubKeyCreateNeg") {
+    test("PublicKey fails") {
       val sec       = ByteVector.fromValidHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
       val resultArr = PrivateKey(sec).flatMap(_.genPublicKey)
       assert(resultArr)(failure)

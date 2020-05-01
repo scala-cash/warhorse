@@ -1,6 +1,5 @@
 package scash.warhorse.rpc.responses
 
-import scash.warhorse.rpc.responses.util._
 import scash.warhorse.util._
 
 import zio.test.{ suite, DefaultRunnableSpec }
