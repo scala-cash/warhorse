@@ -6,7 +6,7 @@ import scodec.bits.ByteVector
 trait Signer[A] {
   def sign(msg: ByteVector, privkey: PrivateKey): Result[Signature]
 
-  def verify(msg: ByteVector, sig: ByteVector, pubkey: PublicKey): Boolean
+  def verify(msg: ByteVector, sig: ByteVector, pubkey: PublicKey): Result[Boolean]
 }
 
 object Signer {

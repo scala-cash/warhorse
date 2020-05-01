@@ -12,6 +12,7 @@ package object crypto {
   def sign[A: Signer](msg: ByteVector, privkey: PrivateKey): Result[Signature] =
     Signer[A].sign(msg, privkey)
 
-  def verify[A: Signer](msg: ByteVector, signature: ByteVector, pubKey: PublicKey): Boolean =
-    Signer[A].verify(msg, signature, pubKey)
+  def verify[A: Signer](msg: ByteVector, sig: ByteVector, pubKey: PublicKey): Result[Boolean] =
+    Signer[A].verify(msg, sig, pubKey)
+
 }
