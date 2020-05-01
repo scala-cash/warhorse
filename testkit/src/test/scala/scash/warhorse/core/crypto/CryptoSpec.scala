@@ -22,8 +22,8 @@ object CryptoSpec extends DefaultRunnableSpec {
       testM("bytes -> pub -> bytes")(
         check(gen.pubkey)(pub => assert(pub.bytes.decode[PublicKey])(success(pub)))
       ),
-      testM("fail compressed")(check(gen.byteVectorN(32))(b => assert(PrivateKey(0x01 +: b))(failure))),
-      testM("fail uncompressed")(check(gen.byteVectorN(64))(b => assert(PrivateKey(0x01 +: b))(failure)))
+      testM("fail compressed")(check(gen.byteVectorN(32))(b => assert(PrivateKey(0x01.toByte +: b))(failure))),
+      testM("fail uncompressed")(check(gen.byteVectorN(64))(b => assert(PrivateKey(0x01.toByte +: b))(failure)))
     )
   )
 }

@@ -1,17 +1,16 @@
 package scash.warhorse.core.crypto
 
+import org.scash.secp256k1
 import scash.warhorse.core.crypto
 import scash.warhorse.gen
-import scash.warhorse.util._
-import org.scash.secp256k1
+import scash.warhorse.util.success
 import scodec.bits.ByteVector
 import scodec.bits._
-import zio.test.DefaultRunnableSpec
+import zio.test.Assertion.isTrue
 import zio.test._
-import zio.test.Assertion._
 
-object Secp256k1Spec extends DefaultRunnableSpec {
-  val spec = suite("secp256k1")(
+object ECDSASpec extends DefaultRunnableSpec {
+  val spec = suite("ECDSASpec")(
     test("testVerifyPos") {
       val data = ByteVector.fromValidHex("CF80CD8AED482D5D1527D7DC72FCEFF84E6326592848447D2DC0B0E87DFC9A90") //sha256hash of "testing"
       val sig = ByteVector.fromValidHex(
@@ -33,29 +32,6 @@ object Secp256k1Spec extends DefaultRunnableSpec {
       )
       val pub = PublicKey(pubHex).flatMap(crypto.verify[ECDSA](data, sig, _))
       assert(pub)(success(false))
-    },
-    test("testSecKeyVerifyPos") {
-      val sec  = ByteVector.fromValidHex("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530")
-      val psec = PrivateKey(sec)
-      assert(psec)(successResult(psec))
-    },
-    test("testSecKeyVerifyNeg") {
-      val sec  = ByteVector.fromValidHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
-      val psec = PrivateKey(sec)
-      assert(psec)(failure)
-    },
-    test("testPubKeyCreatePos") {
-      val sec       = ByteVector.fromValidHex("67E56582298859DDAE725F972992A07C6C4FB9F62A8FFF58CE3CA926A1063530")
-      val resultArr = PrivateKey(sec).flatMap(_.genPublicKey)
-      val expected =
-        "04C591A8FF19AC9C4E4E5793673B83123437E975285E7B442F4EE2654DFFCA5E2D2103ED494718C697AC9AEBCFD19612E224DB46661011863ED2FC54E71861E2A6"
-      val ans = PublicKey(ByteVector.fromValidHex(expected))
-      assert(resultArr)(equalTo(ans))
-    },
-    test("testPubKeyCreateNeg") {
-      val sec       = ByteVector.fromValidHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
-      val resultArr = PrivateKey(sec).flatMap(_.genPublicKey)
-      assert(resultArr)(failure)
     } /*,
     testM("testSignPos") {
       val data   = ByteVector.fromValidHex("CF80CD8AED482D5D1527D7DC72FCEFF84E6326592848447D2DC0B0E87DFC9A90")
@@ -94,7 +70,6 @@ object Secp256k1Spec extends DefaultRunnableSpec {
           val priv = hex"0000000000000000000000000000000000000000000000000000000000000001"
           val sig =
             hex"3045022100934b1ea10a4b3c1757e2b0c017d0b6143ce3c9a7e6a4a49860d7a6ab210ee3d802202442ce9d2b916064108014783e923ec36b49743e2ffa1c4496f01a512aafd9e5"
-          Predef.println(sig)
           val sec  = PrivateKey(priv)
           val pub  = sec.flatMap(_.genPublicKey).require
           val sign = sec.flatMap(crypto.sign[ECDSA](data, _))
@@ -103,4 +78,5 @@ object Secp256k1Spec extends DefaultRunnableSpec {
       }
     }
   )
+
 }
