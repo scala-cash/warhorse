@@ -9,6 +9,8 @@ package object crypto {
 
   def genPubkey(privateKey: PrivateKey): Result[PublicKey] = secp256k1KeyGen.genPubkey(privateKey)
 
+  def genPubkeyCompressed(privateKey: PrivateKey): Result[PublicKey] = secp256k1KeyGen.genPubkeyCompressed(privateKey)
+
   def sign[A: Signer](msg: ByteVector, privkey: PrivateKey): Result[Signature] =
     Signer[A].sign(msg, privkey)
 

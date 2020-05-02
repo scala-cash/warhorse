@@ -24,9 +24,15 @@ object Secp256k1 {
     def genPrivkey: Result[PrivateKey] =
       PrivateKey(BigInt(256, new SecureRandom()))
 
-    def genPubkey(privateKey: PrivateKey): Result[PublicKey] = {
+    def genPubkey(privateKey: PrivateKey): Result[PublicKey] =
+      genPublicKey(privateKey, false)
+
+    def genPubkeyCompressed(privateKey: PrivateKey): Result[PublicKey] =
+      genPublicKey(privateKey, true)
+
+    private def genPublicKey(privateKey: PrivateKey, compressed: Boolean): Result[PublicKey] = {
       val pointQ = secp256K1Curve.domain.getG.multiply(new BigInteger(1, privateKey.bytes.toArray))
-      PublicKey.apply(pointQ.getEncoded(false).toByteVector)
+      PublicKey.apply(pointQ.getEncoded(compressed).toByteVector)
     }
 
   }

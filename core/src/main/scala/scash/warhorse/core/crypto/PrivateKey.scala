@@ -28,6 +28,8 @@ object PrivateKey {
 
   implicit class PrivateKeyOps(p: PrivateKey) {
     def genPublicKey: Result[PublicKey] = crypto.genPubkey(p)
+
+    def genPublicKeyCompressed: Result[PublicKey] = crypto.genPubkeyCompressed(p)
   }
 
   private def inRange(bigInt: BigInt, f: BigInt => Result[PrivateKey]): Result[PrivateKey] =
