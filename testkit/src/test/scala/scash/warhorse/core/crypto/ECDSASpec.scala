@@ -50,6 +50,17 @@ object ECDSASpec extends DefaultRunnableSpec {
           )
         )
         .map(BoolAlgebra.collectAll(_).get)
+    ),
+    testM("fail msg sign size")(
+      check(gen.byteVectorN(30), gen.privKey)((msg, priv) => assert(crypto.sign[ECDSA](msg, priv))(failure))
+    ),
+    testM("fail msg verify size")(
+      check(gen.byteVectorN(30), gen.pubkey)((msg, pub) => assert(crypto.verify[ECDSA](msg, msg, pub))(failure))
+    ),
+    testM("fail sig verify size")(
+      check(gen.byteVectorN(32), gen.byteVectorN(521), gen.pubkey)((msg, sig, pub) =>
+        assert(crypto.verify[ECDSA](msg, sig, pub))(failure)
+      )
     )
   )
 
