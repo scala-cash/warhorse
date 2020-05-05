@@ -1,6 +1,5 @@
 package scash.warhorse.core.crypto
 
-import java.math.BigInteger
 import java.security.SecureRandom
 
 import org.bouncycastle.crypto.params.ECDomainParameters
@@ -31,7 +30,7 @@ object Secp256k1 {
       genPublicKey(privateKey, true)
 
     private def genPublicKey(privateKey: PrivateKey, compressed: Boolean): Result[PublicKey] = {
-      val pointQ = secp256K1Curve.domain.getG.multiply(new BigInteger(1, privateKey.toArray))
+      val pointQ = secp256K1Curve.domain.getG.multiply(privateKey.toBigInteger)
       PublicKey.apply(pointQ.getEncoded(compressed).toByteVector)
     }
 

@@ -16,7 +16,7 @@ object PrivateKey {
     else inRange(b.toBigInt, _ => Successful(new PrivateKey(b)))
 
   def apply(bigInt: BigInt): Result[PrivateKey] =
-    inRange(bigInt, b => apply(b.toByteVector.dropWhile(_ == 0.toByte).padLeft(32)))
+    inRange(bigInt, b => apply(b.toByteVector))
 
   implicit val sha256Serde: Serde[PrivateKey] = Serde[PrivateKey](
     (a: PrivateKey) => Successful(a.b),

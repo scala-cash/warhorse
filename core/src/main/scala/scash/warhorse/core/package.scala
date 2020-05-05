@@ -1,5 +1,7 @@
 package scash.warhorse
 
+import java.math.BigInteger
+
 import scash.warhorse.core.typeclass.{ CNumeric, CNumericSyntax, SerdeSyntax }
 import scodec.bits.ByteVector
 
@@ -27,8 +29,22 @@ package object core extends SerdeSyntax with CNumericSyntax {
       Int.MaxValue
     )(P.identity[Int], _.toInt)
 
-  implicit class BigIntOps(bigInt: BigInt) {
-    def toByteVector = bigInt.toByteArray.toByteVector
+  implicit class BigIntOps(n: BigInt) {
+    def toByteVector = {
+      val bytes = ByteVector(n.toByteArray)
+      if (bytes.length <= 32) bytes.padLeft(32)
+      else bytes.tail
+    }
+
+    def toHex: String = toByteVector.toHex
+  }
+
+  implicit class BigIntegerOps(n: BigInteger) {
+    def toByteVector = {
+      val bytes = ByteVector(n.toByteArray)
+      if (bytes.length <= 32) bytes.padLeft(32)
+      else bytes.tail
+    }
 
     def toHex: String = toByteVector.toHex
   }
