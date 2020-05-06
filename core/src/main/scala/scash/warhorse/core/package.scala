@@ -30,23 +30,23 @@ package object core extends SerdeSyntax with CNumericSyntax {
     )(P.identity[Int], _.toInt)
 
   implicit class BigIntOps(n: BigInt) {
-    def toByteVector = {
+    def toUnsignedByteVector = {
       val bytes = ByteVector(n.toByteArray)
       if (bytes.length <= 32) bytes.padLeft(32)
       else bytes.tail
     }
 
-    def toHex: String = toByteVector.toHex
+    def toHex: String = toUnsignedByteVector.toHex
   }
 
   implicit class BigIntegerOps(n: BigInteger) {
-    def toByteVector = {
+    def unSignedArrayLength = (n.bitLength() + 7) / 8
+
+    def toUnsignedByteVector = {
       val bytes = ByteVector(n.toByteArray)
       if (bytes.length <= 32) bytes.padLeft(32)
       else bytes.tail
     }
-
-    def toHex: String = toByteVector.toHex
   }
 
   implicit class ArrayByteOps(array: Array[Byte]) {

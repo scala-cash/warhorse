@@ -5,8 +5,8 @@ import java.math.BigInteger
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters
 import org.bouncycastle.math.ec.ECPoint
 
-import scash.warhorse.{ Result }
-import scash.warhorse.Result.{ Successful }
+import scash.warhorse.{ Err, Result }
+import scash.warhorse.Result.{ Failure, Successful }
 import scash.warhorse.core._
 import scash.warhorse.core.crypto.hash.Sha256
 
@@ -19,13 +19,8 @@ object Schnorr {
   class SchnorrSigner(ecc: ECCurve[Secp256k1]) extends Signer[Schnorr] {
     val fieldSize = ecc.domain.getCurve.getField.getCharacteristic
 
-    // The rfc6979 nonce derivation function accepts additional entropy.
-    // We are using the same entropy that is used by bitcoin-abc so our test
-    // vectors will be compatible. This byte string is chosen to avoid collisions
-    // with ECDSA which would render the signature insecure.
-    //
-    // See https://github.com/bitcoincashorg/bitcoincash.org/blob/master/spec/2019-05-15-schnorr.md#recommended-practices-for-secure-signature-generation
-    val additionalData = "Schnorr+SHA256  ".getBytes.toByteVector
+    /** Same additional data used in ABC and bchd for generating the same deterministic schnorr signing */
+    val additionalData = "Schnorr+SHA256  ".getBytes("UTF-8").toByteVector
 
     private def hasSquareY(R: ECPoint) =
       R.getYCoord.toBigInteger
@@ -33,28 +28,28 @@ object Schnorr {
 
     def sign(unsigned: ByteVector, privkey: PrivateKey): Result[Signature] = {
       val privkeyNum    = privkey.toBigInteger
-      val hash          = Sha256.hash(privkey.bytes ++ unsigned)
-      val privkeyParams = new ECPrivateKeyParameters(privkey.toBigInteger, ecc.domain)
+      val privkeyParams = new ECPrivateKeyParameters(privkeyNum, ecc.domain)
       val N             = ecc.domain.getN
       val G             = ecc.domain.getG
 
-      val nonce = nonceRFC6979
-      nonce.init(N, privkeyParams.getD, (hash.bytes).toArray)
-      val k1 = nonce.nextK
-      Predef.println(k1)
+      /** Calculate k*/
+      val nonceFunction = nonceRFC6979
+      nonceFunction.init(N, privkeyParams.getD, unsigned.toArray, additionalData.toArray)
+      val k0 = nonceFunction.nextK.mod(N)
+      if (k0.equals(BigInteger.ZERO)) Failure(Err("Fail to generate signature"))
 
       /** R = k * G. Negate nonce if R.y is not a quadratic residue */
-      val R = G.multiply(k1).normalize
-      val k = if (hasSquareY(R)) k1 else N.subtract(k1)
+      val R = G.multiply(k0).normalize
+      val k = if (hasSquareY(R)) k0 else N.subtract(k0)
 
       /** e = Hash(R.x || compressed(P) || m) mod n */
       val P        = G.multiply(privkeyNum)
       val pubBytes = P.getEncoded(true).toByteVector
-      val rx       = R.getXCoord.toBigInteger.toByteVector
+      val rx       = R.getXCoord.toBigInteger.toUnsignedByteVector
       val e        = Sha256.hash(rx ++ pubBytes ++ unsigned).toBigInteger.mod(N)
 
-      /** s = (k + e * x) mod n */
-      val s = e.multiply(privkeyNum).add(k).mod(N).toByteVector
+      /** s = (k + e * priv) mod n */
+      val s = e.multiply(privkeyNum).add(k).mod(N).toUnsignedByteVector
 
       /** Signature = (R.x, s) */
       val sig = rx ++ s
