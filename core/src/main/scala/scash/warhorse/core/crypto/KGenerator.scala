@@ -20,7 +20,7 @@ import org.bouncycastle.util.{ Arrays, BigIntegers }
  * as indicated in https://tools.ietf.org/html/rfc6979#section-3.6
  * K = HMAC_K(V || 0x00 || bytes(x) || bytes(h1) || k')
  */
-class DSAKGenerator(digest: Digest) extends DSAKCalculator {
+class KGenerator(digest: Digest) extends DSAKCalculator {
   val hMac = new HMac(digest)
   val V    = new Array[Byte](hMac.getMacSize)
   val K    = new Array[Byte](hMac.getMacSize)

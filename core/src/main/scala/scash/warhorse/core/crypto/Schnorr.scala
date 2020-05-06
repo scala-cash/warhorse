@@ -5,11 +5,10 @@ import java.math.BigInteger
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters
 import org.bouncycastle.math.ec.ECPoint
 
-import scash.warhorse.{ Err, Result }
-import scash.warhorse.Result.{ Failure, Successful }
+import scash.warhorse.Result
+import scash.warhorse.Result.Successful
 import scash.warhorse.core._
 import scash.warhorse.core.crypto.hash.Sha256
-
 import scodec.bits.ByteVector
 
 sealed trait Schnorr
@@ -20,23 +19,22 @@ object Schnorr {
     val fieldSize = ecc.domain.getCurve.getField.getCharacteristic
 
     /** Same additional data used in ABC and bchd for generating the same deterministic schnorr signing */
-    val additionalData = "Schnorr+SHA256  ".getBytes("UTF-8").toByteVector
+    val additionalData = "Schnorr+SHA256  ".getBytes("UTF-8")
 
-    private def hasSquareY(R: ECPoint) =
-      R.getYCoord.toBigInteger
-        .modPow(fieldSize.subtract(BigInteger.ONE).divide(BigInt(2L).bigInteger), fieldSize) == BigInteger.ONE
+    private def hasSquareY(R: ECPoint) = {
+      val j = fieldSize.subtract(BigInteger.ONE).divide(new BigInteger("2"))
+      R.getYCoord.toBigInteger.modPow(j, fieldSize).equals(BigInteger.ONE)
+    }
 
     def sign(unsigned: ByteVector, privkey: PrivateKey): Result[Signature] = {
-      val privkeyNum    = privkey.toBigInteger
-      val privkeyParams = new ECPrivateKeyParameters(privkeyNum, ecc.domain)
-      val N             = ecc.domain.getN
-      val G             = ecc.domain.getG
+      val privkeyNum = privkey.toBigInteger
+      val N          = ecc.domain.getN
+      val G          = ecc.domain.getG
 
       /** Calculate k*/
       val nonceFunction = nonceRFC6979
-      nonceFunction.init(N, privkeyParams.getD, unsigned.toArray, additionalData.toArray)
+      nonceFunction.init(N, new ECPrivateKeyParameters(privkeyNum, ecc.domain).getD, unsigned.toArray, additionalData)
       val k0 = nonceFunction.nextK.mod(N)
-      if (k0.equals(BigInteger.ZERO)) Failure(Err("Fail to generate signature"))
 
       /** R = k * G. Negate nonce if R.y is not a quadratic residue */
       val R = G.multiply(k0).normalize
@@ -45,7 +43,7 @@ object Schnorr {
       /** e = Hash(R.x || compressed(P) || m) mod n */
       val P        = G.multiply(privkeyNum)
       val pubBytes = P.getEncoded(true).toByteVector
-      val rx       = R.getXCoord.toBigInteger.toUnsignedByteVector
+      val rx       = R.getXCoord.getEncoded.toByteVector
       val e        = Sha256.hash(rx ++ pubBytes ++ unsigned).toBigInteger.mod(N)
 
       /** s = (k + e * priv) mod n */

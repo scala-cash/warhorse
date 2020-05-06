@@ -50,6 +50,6 @@ package object core extends SerdeSyntax with CNumericSyntax {
   }
 
   implicit class ArrayByteOps(array: Array[Byte]) {
-    def toByteVector = ByteVector(array)
+    def toByteVector = ByteVector.view(array)
   }
 }

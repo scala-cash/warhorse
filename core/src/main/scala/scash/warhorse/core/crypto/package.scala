@@ -19,5 +19,5 @@ package object crypto {
   def verify[A: Signer](msg: ByteVector, sig: ByteVector, pubKey: PublicKey): Result[Boolean] =
     Signer[A].verify(msg, sig, pubKey)
 
-  protected[crypto] def nonceRFC6979 = new DSAKGenerator(new SHA256Digest)
+  protected[crypto] def nonceRFC6979 = new KGenerator(new SHA256Digest)
 }

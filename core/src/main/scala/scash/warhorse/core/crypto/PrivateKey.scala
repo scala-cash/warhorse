@@ -12,7 +12,7 @@ case class PrivateKey(b: ByteVector)
 object PrivateKey {
 
   def apply(b: ByteVector): Result[PrivateKey] =
-    if (b.size != 32) Failure(Err.BoundsError("PrivateKey", s"exactly 32 bytes", s"size ${b.size}"))
+    if (b.size != 32) Failure(Err.BoundsError("PrivateKey", s"exactly 32 bytes", s"size is not 32 bytes"))
     else inRange(b.toBigInt, _ => Successful(new PrivateKey(b)))
 
   def apply(bigInt: BigInt): Result[PrivateKey] =
