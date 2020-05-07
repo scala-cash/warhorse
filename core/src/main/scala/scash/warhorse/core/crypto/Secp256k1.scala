@@ -8,7 +8,7 @@ import org.bouncycastle.jce.ECNamedCurveTable
 import scash.warhorse.Result
 import scash.warhorse.core._
 
-case class Secp256k1()
+sealed trait Secp256k1
 
 object Secp256k1 {
 
