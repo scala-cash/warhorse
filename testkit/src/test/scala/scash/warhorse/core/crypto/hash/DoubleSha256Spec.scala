@@ -22,6 +22,11 @@ object DoubleSha256Spec extends DefaultRunnableSpec {
         else assert(b.decodeExact[DoubleSha256B])(failure)
       )
     ),
+    testM("Compare")(
+      check(Gen.anyString)(msg =>
+        assert(Hasher[DoubleSha256].hash(msg))(equalTo(Hasher[DoubleSha256].hash(ByteVector.view(msg.getBytes))))
+      )
+    ),
     suite("Deterministic")(
       test("0")(
         assert(Hasher[DoubleSha256].hash("0").bytes)(
