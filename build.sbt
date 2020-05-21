@@ -24,6 +24,8 @@ inThisBuild(
   )
 )
 
+coverageExcludedPackages := "*KGenerator.scala;"
+
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
 addCommandAlias("check", "all scalafmtSbtCheck scalafmtCheck test:scalafmtCheck")
 addCommandAlias("coverageGen", "coverage testkit/test core/coverageReport core/coverageAggregate core/coveralls")
