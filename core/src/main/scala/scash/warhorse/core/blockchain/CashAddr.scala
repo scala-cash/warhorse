@@ -4,7 +4,6 @@ import scash.warhorse.{ Err, Result }
 import scash.warhorse.Result.{ Failure, Successful }
 import scash.warhorse.core.crypto.hash.Hash160
 import scash.warhorse.core._
-import scash.warhorse.core.typeclass.Serde
 
 import scodec.bits._
 
@@ -29,23 +28,18 @@ object CashAddr {
     }
   }
 
-  lazy val serde: Serde[Address] = BCH32.bch32Serde.xmap[Address](
-    bch => toAddress(bch).require,
-    addr => toBCH32(addr.value).require
-  )
-
-  def fromString(str: String): Result[Address] =
-    for {
-      bch <- toBCH32(str)
-      ans <- toAddress(bch)
-    } yield ans
-
   implicit val cashAddr = new Addr[CashAddr] {
     def p2pkh(net: Net, hash: Hash160): P2PKH =
       P2PKH(cons(net, P2KHbyte, hash))
 
     def p2sh(net: Net, hash: Hash160): P2SH =
       P2SH(cons(net, P2SHbyte, hash))
+
+    def decode(addr: String): Result[Address] =
+      for {
+        bch <- toBCH32(addr)
+        ans <- toAddress(bch)
+      } yield ans
   }
 
   private def toBCH32(str: String): Result[BCH32] = {

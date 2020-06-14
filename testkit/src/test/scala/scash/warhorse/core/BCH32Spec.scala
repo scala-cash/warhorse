@@ -44,6 +44,13 @@ object BCH32Spec extends DefaultRunnableSpec {
         assert(bch.toString)(equalTo(test.addr))
       }
     ),
+    testM("fromString") {
+      jsonFromCSV[BCH32Test]("bch32.json") { test =>
+        val split = test.addr.split(":")
+        val bch   = BCH32.fromString(split(0), split(1))
+        assert(bch.map(_.toString))(success(test.addr))
+      }
+    },
     // format: off
     suite("polyMod")(
       test("empty")(assert(BCH32.polyMod(Vector.empty))(equalTo(Uint64.zero))),
@@ -74,7 +81,8 @@ object BCH32Spec extends DefaultRunnableSpec {
       test("bitcoincash")(assert(testCheckSum("bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a"))(isTrue)),
       test("bchtest")(assert(testCheckSum("bchtest:testnetaddress4d6njnut"))(isTrue)),
       test("bchreg")(assert(testCheckSum("bchreg:555555555555555555555555555555555555555555555udxmlmrz"))(isTrue))
-    )
+    ),
+    // format: on
   )
-  // format: on
+
 }
