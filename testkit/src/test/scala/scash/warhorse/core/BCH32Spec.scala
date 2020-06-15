@@ -28,14 +28,6 @@ object BCH32Spec extends DefaultRunnableSpec {
     assert(BCH32.polyMod(Vector(Uint5(n.toByte)) ++ Vector.fill(pad)(Uint5.zero)))(equalTo(expected))
 
   val spec = suite("BCH32Spec")(
-    testM("larger test vectors")(
-      jsonFromCSV[BCH32Test]("bch32.json") { test =>
-        val split    = test.addr.split(":")
-        val typeByte = (test.vtype.toByte << 3).toByte
-        val bch      = BCH32.genBch32(split(0), typeByte, test.payLoadHex)
-        assert(bch.toString)(equalTo(test.addr))
-      }
-    ),
     testM("decode")(
       jsonFromCSV[BCH32Test]("bch32.json") { test =>
         val split    = test.addr.split(":")
@@ -51,6 +43,12 @@ object BCH32Spec extends DefaultRunnableSpec {
         assert(bch.map(_.toString))(success(test.addr))
       }
     },
+    test("invalid versionbyte")(
+      assert(BCH32.fromString("bitcoincash", "0pm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a"))(failure)
+    ),
+    test("invalid mixed case")(
+      assert(BCH32.fromString("bitcoincash", "qpm2qsznhks23z7629Mms6s4cwef74vcwvy22gdx6a"))(failure)
+    ),
     // format: off
     suite("polyMod")(
       test("empty")(assert(BCH32.polyMod(Vector.empty))(equalTo(Uint64.zero))),
