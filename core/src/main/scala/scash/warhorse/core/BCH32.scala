@@ -3,8 +3,7 @@ package scash.warhorse.core
 import scash.warhorse.{ Err, Result }
 import scash.warhorse.Result.{ Failure, Successful }
 import scash.warhorse.core.number.{ Uint5, Uint64 }
-
-import scodec.bits.ByteVector
+import scodec.bits.{ ByteVector }
 
 import Predef._
 import scala.util.Try
@@ -38,13 +37,24 @@ object BCH32                                      {
     c ^ 1
   }
 
+  def verifyVersionByte(payload: String): Boolean =
+    Charset
+      .fromBase32(payload.dropRight(8))
+      .map { payloadVec =>
+        val (headBits, payLoadBits) = payloadVec.map(_.bits).reduce(_ ++ _).splitAt(8)
+        val headByte                = headBits.toByte(false)
+        val payLoadBytes            = payLoadBits.dropRight(payLoadBits.size % 8)
+
+        !(headByte hasBit 0x80) && (hashSizeMap(headByte & 0x07) == payLoadBytes.size)
+      }
+      .getOrElse(false)
+
   def verifyCheckSum(prefix: String, payload: String): Boolean =
     Charset
       .fromBase32(payload)
-      .map { payloadBytes =>
-        val prefixVec  = prefix.map(Uint5.cast).toVector
-        val payloadVec = payloadBytes.toArray.map(Uint5(_)).toVector
-        val sepVec     = Vector(Uint5.zero)
+      .map { payloadVec =>
+        val prefixVec = prefix.map(Uint5.cast).toVector
+        val sepVec    = Vector(Uint5.zero)
         polyMod(prefixVec ++ sepVec ++ payloadVec) === Uint64.zero
       }
       .getOrElse(false)
@@ -59,30 +69,28 @@ object BCH32                                      {
   }
 
   def fromString(prefix: String, payLoad: String): Result[BCH32] =
-    if (verifyCheckSum(prefix, payLoad)) Successful(BCH32(prefix, payLoad))
-    else Failure(Err(s"$prefix:$payLoad is not a valid bch32"))
+    if (!verifyVersionByte(payLoad)) Failure(Err(s"$prefix:$payLoad the first byte is incorrect"))
+    else if (!verifyCheckSum(prefix, payLoad)) Failure(Err(s"$prefix:$payLoad does not have a valid checksum"))
+    else Successful(BCH32(prefix, payLoad))
 
   def genBch32(prefix: String, vtype: Byte, payload: ByteVector): BCH32 = {
-    val versionByte   = (vtype | hashSizeMap.indexOf(payload.size * 8)).toByte
-    val payloadVec    = bytestoUint5(versionByte +: payload)
+    val versionByte = (vtype | hashSizeMap.indexOf(payload.size * 8)).toByte
+    val bits        = (versionByte +: payload).bits
+    val fraction    = bits.size % 5
+    val padding     =
+      if (fraction == 0) bits
+      else bits.padRight(bits.size + 5 - fraction)
+
+    val payloadVec = padding
+      .grouped(5)
+      .map(_.decode_[Uint5])
+      .toVector
+
     val prefixVec     = prefix.map(Uint5.cast).toVector
     val checkSum      = calculateCheckSum(prefixVec, payloadVec)
     val base32Payload = Charset.toBase32(payloadVec ++ checkSum)
 
     BCH32(prefix, base32Payload)
-  }
-
-  private def bytestoUint5(bytes: ByteVector): Vector[Uint5] = {
-    val bits     = bytes.bits
-    val fraction = bits.size % 5
-    val padding  =
-      if (fraction == 0) bits
-      else bits.padRight(bits.size + 5 - fraction)
-
-    padding
-      .grouped(5)
-      .map(_.decode_[Uint5])
-      .toVector
   }
 
   private object Charset {
@@ -94,9 +102,10 @@ object BCH32                                      {
       'c', 'e', '6', 'm', 'u', 'a', '7', 'l'
       )
     // format: on
-
-    def fromBase32(str: String): Result[ByteVector] =
-      Result.fromTry(Try(ByteVector(str.map(index))))
+    def fromBase32(str: String): Result[Vector[Uint5]] =
+      Result.fromTry(
+        Try(str.map(index _ andThen Uint5.apply).toVector)
+      )
 
     def toBase32(bb: Vector[Uint5]): String = {
       val str = new StringBuffer
@@ -104,9 +113,9 @@ object BCH32                                      {
       str.toString
     }
 
-    def char(i: Int): Char = Chars(i)
+    private def char(i: Int): Char = Chars(i)
 
-    def index(c: Char): Byte = {
+    private def index(c: Char): Byte = {
       val idx = Chars.indexOf(c)
       if (idx >= 0) idx.toByte
       else throw new IllegalArgumentException

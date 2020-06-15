@@ -44,10 +44,11 @@ object CashAddr {
 
   private def toBCH32(str: String): Result[BCH32] = {
     val split = str.split(":")
-    if (split.size != 2) Failure(Err(s"$str has invalid cashaddr format"))
-    else if (!List("bitcoincash", "bchtest", "bchreg").contains(split(0)))
+    if (str.toUpperCase != str && str.toLowerCase != str) Failure(Err(s"$str mixed upper and lower case not allowed"))
+    else if (split.size != 2) Failure(Err(s"$str has invalid cashaddr format"))
+    else if (!List("bitcoincash", "bchtest", "bchreg").contains(split(0).toLowerCase))
       Failure(Err(s"Not a valid prefix: ${split(0)}"))
-    else BCH32.fromString(split(0), split(1))
+    else BCH32.fromString(split(0).toLowerCase, split(1).toLowerCase)
   }
 
   private def toAddress(bch: BCH32): Result[Address] =

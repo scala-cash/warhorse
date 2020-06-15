@@ -40,7 +40,7 @@ object AddressSpec extends DefaultRunnableSpec {
       testM("addrp2sh")(check(gen.addrp2sh)(addr => assert(Addr[CashAddr].decode(addr.value))(success(addr)))),
       testM("address")(check(gen.address)(addr => assert(Address(addr.value))(success(addr))))
     ),
-    suite("fromBase58")(
+    suite("fromString")(
       testM("fail")(
         jsonFromCSV[InvalidAddressTest]("key_io_invalid.json")(base58 => assert(Address(base58.addr))(failure))
       ),
