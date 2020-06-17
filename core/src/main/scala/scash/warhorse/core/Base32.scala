@@ -11,7 +11,7 @@ import scala.util.Try
 /**
 https://github.com/bitcoincashorg/bitcoincash.org/blob/master/spec/cashaddr.md
  */
-object BCH32 {
+object Base32 {
   private val gen = List(
     (0x01, 0x98f2bc8e61L),
     (0x02, 0x79b76d99e2L),

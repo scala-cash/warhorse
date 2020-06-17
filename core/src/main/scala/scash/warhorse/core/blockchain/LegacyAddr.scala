@@ -4,7 +4,7 @@ import scash.warhorse.Result.Failure
 import scash.warhorse.{ Err, Result }
 import scash.warhorse.core.crypto.hash.{ DoubleSha256, Hash160, Hasher }
 import scash.warhorse.core._
-import scash.warhorse.core.typeclass.Cipher
+import scash.warhorse.core.typeclass.Show
 import scodec.bits.ByteVector
 
 sealed trait LegacyAddr
@@ -17,7 +17,7 @@ object LegacyAddr {
   val P2SHMainNet = 0x05.toByte
   val P2SHTestNet = 0xc4.toByte
 
-  val addrShow = new Cipher[Address] {
+  val addrShow = new Show[Address] {
     private def cons(byte: Byte, h160: Hash160): String = {
       val bytes    = byte +: h160.bytes
       val checksum = Hasher[DoubleSha256].hash(bytes).bytes.take(4)

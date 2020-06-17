@@ -2,12 +2,12 @@ package scash.warhorse.core.typeclass
 
 import scash.warhorse.Result
 
-trait Cipher[A] {
+trait Show[A] {
   def encode(a: A): String
 
   def decode(s: String): Result[A]
 }
 
-object Cipher   {
-  def apply[A](implicit c: Cipher[A]) = c
+object Show   {
+  def apply[A](implicit c: Show[A]) = c
 }

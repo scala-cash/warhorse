@@ -4,7 +4,7 @@ import scash.warhorse.{ Err, Result }
 import scash.warhorse.Result.{ Failure, Successful }
 import scash.warhorse.core.crypto.hash.Hash160
 import scash.warhorse.core._
-import scash.warhorse.core.typeclass.Cipher
+import scash.warhorse.core.typeclass.Show
 import scodec.bits.ByteVector
 
 import scala.Predef._
@@ -16,7 +16,7 @@ object CashAddr {
   val P2KHbyte = 0x00.toByte
   val P2SHbyte = 0x08.toByte
 
-  val cashAddrShowNet = new Cipher[Net] {
+  val cashAddrShowNet = new Show[Net] {
     def decode(s: String): Result[Net] =
       s match {
         case "bitcoincash" => Successful(MainNet)
@@ -33,19 +33,19 @@ object CashAddr {
       }
   }
 
-  val addrShow = new Cipher[Address] {
+  val addrShow = new Show[Address] {
     def decode(addr: String): Result[Address] =
       for {
         netpay  <- split(addr)
         net     <- cashAddrShowNet.decode(netpay._1)
-        payload <- BCH32.fromBase32(netpay._1, netpay._2)
+        payload <- Base32.fromBase32(netpay._1, netpay._2)
         ans     <- toAddress(net, payload)
       } yield ans
 
     def encode(a: Address): String =
       a match {
-        case P2PKH(net, pkHash) => BCH32.toBase32(cashAddrShowNet.encode(net), P2KHbyte, pkHash.bytes)
-        case P2SH(net, rsHash)  => BCH32.toBase32(cashAddrShowNet.encode(net), P2SHbyte, rsHash.bytes)
+        case P2PKH(net, pkHash) => Base32.toBase32(cashAddrShowNet.encode(net), P2KHbyte, pkHash.bytes)
+        case P2SH(net, rsHash)  => Base32.toBase32(cashAddrShowNet.encode(net), P2SHbyte, rsHash.bytes)
       }
   }
 
