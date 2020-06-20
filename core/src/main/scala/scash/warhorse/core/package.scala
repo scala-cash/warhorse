@@ -61,6 +61,8 @@ package object core extends SerdeSyntax with CNumericSyntax with ShowSyntax {
 
   implicit class StringOps(str: String) {
     def hash[A: Hasher]: A = Hasher[A].hash(str)
+
+    def parse[A: Show]: Result[A] = Show[A].parse(str)
   }
 
   implicit class ByteVectorOps(byteVector: ByteVector) {
