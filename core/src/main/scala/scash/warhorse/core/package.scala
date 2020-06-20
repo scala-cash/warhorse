@@ -6,7 +6,7 @@ import scash.warhorse.Result.{ Failure, Successful }
 import scash.warhorse.core.typeclass._
 import scodec.bits.ByteVector
 
-package object core extends SerdeSyntax with CNumericSyntax {
+package object core extends SerdeSyntax with CNumericSyntax with ShowSyntax {
   import scala.{ Predef => P }
 
   implicit val bigInt64Numeric: CNumeric[BigInt] =
