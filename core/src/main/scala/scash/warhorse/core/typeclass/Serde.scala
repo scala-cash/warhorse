@@ -4,6 +4,7 @@ import java.math.BigInteger
 
 import scash.warhorse.Result
 import scash.warhorse.core._
+import scash.warhorse.core.number.Uint8
 import scodec.{ Codec, DecodeResult }
 import scodec.bits.{ BitVector, ByteVector }
 import scodec.codecs._
@@ -49,6 +50,10 @@ object Serde {
     new Serde[A] {
       def codec: Codec[A] = c
     }
+
+  def constant[A](b: Int, a: A) =
+    apply(scodec.codecs.constant(Uint8(b).bytes).xmap[A](_ => a, _ => ()))
+
 }
 
 trait SerdeSyntax {
