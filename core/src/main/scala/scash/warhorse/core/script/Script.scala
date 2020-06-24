@@ -2,7 +2,6 @@ package scash.warhorse.core.script
 
 import scash.warhorse.core.crypto.{ PublicKey, Signature }
 import scash.warhorse.core.crypto.hash.Hash160
-import scash.warhorse.core._
 import scash.warhorse.core.script.ScriptByteCode._
 
 import scala.language.implicitConversions
@@ -25,5 +24,4 @@ object ScriptCompiler {
       case P2PKhScriptSig(pubkey, sig, hashType) =>
         SIG(sig, hashType) >> PUBKEY(pubkey)
     }
-
 }

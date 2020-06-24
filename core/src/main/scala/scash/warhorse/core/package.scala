@@ -4,6 +4,7 @@ import java.math.BigInteger
 
 import scash.warhorse.Result.{ Failure, Successful }
 import scash.warhorse.core.typeclass._
+
 import scodec.bits.ByteVector
 
 package object core extends SerdeSyntax with CNumericSyntax with ShowSyntax {
