@@ -42,7 +42,7 @@ object Constant {
 
   private def withSize(b: ByteVector) = Uint8(b.size).bytes ++ b
 
-  implicit val constantCodec =
+  implicit val constantSerde =
     Serde[Constant](
       (a: Constant) =>
         a match {
