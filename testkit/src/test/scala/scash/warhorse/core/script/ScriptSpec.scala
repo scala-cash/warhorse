@@ -30,6 +30,13 @@ object ScriptSpec extends DefaultRunnableSpec {
             assert(scriptPubkey.toASM.to[P2PKHScriptPubkey])(success(scriptPubkey))
       }
     ),
+    testM("scriptSerdeRoundtrip")(
+      check(gen.p2pkhScript) {
+        case (scriptSig, scriptPubkey) =>
+          assert(scriptSig.bytes.decode[P2PKHScriptSig])(success(scriptSig)) &&
+            assert(scriptPubkey.bytes.decode[P2PKHScriptPubkey])(success(scriptPubkey))
+      }
+    ),
     test("scriptPubkeySerde")(
       assert(hex"76a914bee4182d9fbc8931a728410a0cd3e0f340f2995a88ac".decode[P2PKHScriptPubkey])(
         success(P2PKHScriptPubkey(hex"bee4182d9fbc8931a728410a0cd3e0f340f2995a".decode_[Hash160]))

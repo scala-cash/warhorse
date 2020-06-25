@@ -10,6 +10,14 @@ import zio.random.Random
 
 trait Secp256k1Gen {
 
+  def sigAndPubkeyCompressed: Gen[Random with Sized, (Signature, PublicKey)] =
+    for {
+      priv <- privKey
+      pub  <- pubKeyCompressed(priv)
+      msg  <- gen.randomMessage
+      hash <- gen.sha256Bytes(msg)
+    } yield (Signer[Schnorr].sign(hash, priv).require, pub)
+
   def sigAndPubkey: Gen[Random with Sized, (Signature, PublicKey)] =
     for {
       p    <- keyPair

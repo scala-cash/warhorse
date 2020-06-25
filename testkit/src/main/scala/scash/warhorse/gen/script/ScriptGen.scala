@@ -6,7 +6,7 @@ import scash.warhorse.gen
 
 trait ScriptGen {
   def p2pkhScript =
-    gen.sigAndPubkey.map {
+    gen.sigAndPubkeyCompressed.map {
       case (sig, pubkey) =>
         (P2PKHScriptSig(pubkey, sig, 0x00.toByte), P2PKHScriptPubkey(pubkey.hash[Hash160]))
     }

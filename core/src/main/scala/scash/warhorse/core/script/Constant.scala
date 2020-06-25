@@ -7,7 +7,6 @@ import scash.warhorse.core.crypto.{ PublicKey, Signature }
 import scash.warhorse.core.number.Uint8
 import scash.warhorse.core._
 import scash.warhorse.core.typeclass.Serde
-
 import scodec.bits.ByteVector
 import scodec.codecs._
 
@@ -28,14 +27,14 @@ object Constant {
 
   //TODO: need to implement ECDSA and Schnorr decoding
   val sigSerde = Serde(
-    bytes(data.SigPub).xmap[SIG](b => SIG(Signature(b.init), b.last), s => s.sig.bytes :+ s.hashtype)
+    bytes(data.Sig).xmap[SIG](b => SIG(Signature(b.init), b.last), s => s.sig.bytes :+ s.hashtype)
   )
 
   val pubkeyHashSerde = Serde(Hash160.hash160Serde.codec.as[PUBKEYHASH])
   val pubkeySerde     = Serde(PublicKey.publicKeySerde.codec.as[PUBKEY])
 
   private object data {
-    val SigPub     = 65
+    val Sig        = 65
     val Pubkey     = 33
     val PubkeyHash = 20
   }
@@ -57,21 +56,18 @@ object Constant {
       (vec: ByteVector) =>
         ByteVector(vec.head)
           .decode[Uint8]
-          .flatMap(h =>
+          .flatMap { h =>
             h.num match {
-              case Op.False        => opFalseSerde.decode(vec.tail)
-              case data.PubkeyHash => pubkeyHashSerde.decode(vec.tail)
-              case data.Pubkey     => pubkeySerde.decode(vec.tail)
-              case data.SigPub =>
-                pubkeySerde.decode(vec.tail) orElse
-                  sigSerde.decode(vec.tail) orElse
-                  Serde(bytes(data.SigPub).as[BYTES]).decode(vec.tail)
+              case Op.False                    => opFalseSerde.decode(vec.tail)
+              case data.PubkeyHash             => pubkeyHashSerde.decode(vec.tail)
+              case data.Pubkey                 => pubkeySerde.decode(vec.tail)
+              case data.Sig                    => sigSerde.decode(vec.tail)
               case i if i >= 1 && i <= Op.Data => Serde(bytes(i).as[BYTES]).decode(vec.tail)
               case Op.PushData1                => opPushDataSerde.decode(vec.tail)
               case Op.True                     => opTrueSerde.decode(vec.tail)
               case _                           => Failure(Err(s"Invalid Constant size or opcode: ${vec.head}"))
             }
-          )
+          }
     )
 
 }

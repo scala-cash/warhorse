@@ -21,10 +21,9 @@ object Script {
         case op: Operation => Operation.operationSerde.encode(op)
         case _             => Failure(Err(s"Not recognized script: $s"))
       },
-    (vec: ByteVector) => {
-      Predef.println(vec)
+    (vec: ByteVector) =>
+      //Predef.println(vec)
       Constant.constantSerde.decode(vec) orElse Operation.operationSerde.decode(vec)
-    }
   )
 }
 
