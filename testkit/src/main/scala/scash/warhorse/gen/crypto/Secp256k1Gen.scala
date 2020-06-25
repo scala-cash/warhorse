@@ -1,11 +1,29 @@
 package scash.warhorse.gen.crypto
 
 import scash.warhorse.core._
-import scash.warhorse.core.crypto.{ PrivateKey, PublicKey }
+import scash.warhorse.core.crypto.{ PrivateKey, PublicKey, Schnorr, Signature, Signer }
+import scash.warhorse.gen
+
 import zio.random
-import zio.test.Gen
+import zio.test.{ Gen, Sized }
+import zio.random.Random
 
 trait Secp256k1Gen {
+
+  def sigAndPubkeyCompressed: Gen[Random with Sized, (Signature, PublicKey)] =
+    for {
+      priv <- privKey
+      pub  <- pubKeyCompressed(priv)
+      msg  <- gen.randomMessage
+      hash <- gen.sha256Bytes(msg)
+    } yield (Signer[Schnorr].sign(hash, priv).require, pub)
+
+  def sigAndPubkey: Gen[Random with Sized, (Signature, PublicKey)] =
+    for {
+      p    <- keyPair
+      msg  <- gen.randomMessage
+      hash <- gen.sha256Bytes(msg)
+    } yield (Signer[Schnorr].sign(hash, p._1).require, p._2)
 
   def privKey: Gen[Any, PrivateKey] = Gen.const(crypto.genPrivkey.require)
 
